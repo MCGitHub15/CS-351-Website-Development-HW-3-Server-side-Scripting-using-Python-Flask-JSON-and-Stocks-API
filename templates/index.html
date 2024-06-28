@@ -1,0 +1,181 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Stock Search</title>
+        <link rel="stylesheet" href="/static/style.css">
+
+        <script>
+            //Used when clicking on the element id
+            function onSearch() {
+                var req = new XMLHttpRequest();
+                var searchInput = document.getElementById('search-input').value;
+                if (searchInput == "") {
+                    alert("Please fill out this field");
+                    console.log("User has entered a blank input field!");
+                    return;
+                }
+                var url = '/search?search=' + encodeURIComponent(searchInput);
+                req.open('GET', url, true);
+                req.onreadystatechange = function() {
+                    if (req.readyState == 4 && req.status == 200) {
+                        var data = JSON.parse(req.responseText);
+                        //document.getElementById('company-title').innerHTML = data.name;
+                        displayData(data); // Call function to display data
+                        //document.getElementById('tab-container').style.display = "block"; // Show the tab container
+                        document.getElementsByIDName('results-section').style.display = 'block';
+                    }
+                };
+            req.send();
+            }
+
+            //Clear an current values and on screen displays
+            function onClear() {
+                document.getElementById('search-input').value = ''
+                document.getElementById('error-message').innerHTML = ''
+                document.getElementById('results-section').innerHTML = ''
+
+            }
+
+            // Function to open a specific tab
+        function openTab(tabId) {
+            // Hide all tabs
+            var tabs = document.getElementsByClassName('tab-content');
+            for (var i = 0; i < tabs.length; i++) {
+            tabs[i].style.display = 'none';
+            }
+
+            // Show the selected tab
+            document.getElementById(tabId).style.display = 'block';
+        }
+
+            //Function used to display the daily data
+            function displayData(data){
+                var dailyDiv = document.getElementById('daily-data');
+                var dailyData = data.daily
+
+                var ERR = data.err
+                if (ERR == 500) {
+                    document.getElementById("error-message").innerHTML = 'Error: No record has been found, please enter a valid symbol'
+                    console.log("Error: No record has been found, please enter a valid symbol");
+                }
+                else {
+                    dailyDiv.innerHTML = '';            //Reset Div after searching
+                var dailyTable = document.createElement('table');
+                dailyTable.innerHTML = `
+                    <tr><th></th><th></th></tr>
+                    <tr><td class="grey">Company Name</td><td>${dailyData.name}</td></tr>
+                    <tr><td class="grey">Stock Ticker Symbol</td><td>${dailyData.ticker}</td></tr>
+                    <tr><td class="grey">Exchange Code</td><td>${dailyData.exchangeCode}</td></tr>
+                    <tr><td class="grey">Company Start Date</td><td>${dailyData.startDate}</td></tr>
+                    <tr><td class="grey">Description</td><td>${dailyData.description}</td></tr>
+                `;
+                dailyDiv.appendChild(dailyTable);
+
+                //Set up for IEX change and percentage with images
+                var iexData = data.iex[0]   //The data is in an array, so take the first element
+                var change = iexData.last - iexData.prevClose
+                var changePercent = ((change / iexData.prevClose)) * 100
+                var changeImage = "../static/GreenArrowUP.png"
+                var changeImage2 = "../static/GreenArrowUP.png"
+                changeImage = change < 0 ? "../static/RedArrowDown.png" : changeImage;
+                changeImage2 = changePercent < 0 ? "../static/RedArrowDown.png" : changeImage2;
+
+                //Displaying the IEX data
+                var iexData = data.iex[0]   //The data is in an array, so take the first element
+                var iexDiv = document.getElementById('iex-data');
+                iexDiv.innerHTML = '';  //Reset Div after searching
+                if (iexData) {
+                    var iexTable = document.createElement('table');
+                    iexTable.innerHTML = `
+                        <tr><th></th><th></th></tr>
+                        <tr><td class="grey">Stock Ticker Symbol</td><td>${dailyData.ticker}</td></tr>
+                        <tr><td class="grey">Trading Day</td><td>${iexData.timestamp}</td></tr>
+                        <tr><td class="grey">Previous Closing Price</td><td>${iexData.prevClose}</td></tr>
+                        <tr><td class="grey">Opening Price</td><td>${iexData.open}</td></tr>
+                        <tr><td class="grey">High Price</td><td>${iexData.high}</td></tr>
+                        <tr><td class="grey">Low Price</td><td>${iexData.low}</td></tr>
+                        <tr><td class="grey">Last Price</td><td>${iexData.last}</td></tr>
+                        <tr><td class="grey">Change</td><td> ${change}<img id='change-img'></td></tr>
+                        <tr><td class="grey">Change Percent</td><td> ${changePercent}%<img id='changepercent-img'></td></tr>
+                        <tr><td class="grey">Volume</td><td>${iexData.volume}</td></tr>
+                    `;
+                    iexDiv.appendChild(iexTable);
+                    document.getElementById("change-img").src=changeImage;
+                    document.getElementById("changepercent-img").src=changeImage2;
+                    document.getElementById("error-message").innerHTML = "";
+                }
+                else {  // If Iex data is not avaliable or is broken, ensure that a message is displayed.
+                iexDiv.innerHTML = 'IEX data not available.';
+                }
+                //document.getElementById("error-message").innerHTML = ""; //Clear any error messages
+                }
+                
+            }
+        </script>
+    </head>
+
+    <body>
+        <div id="user-input">
+            <h1>Stock Search</h1>
+            <label>Enter Stock Ticker Symbol <span style="color: red;">*</span></label>
+            <input id="search-input" type="text" name="search" placeholder="" required><br><br>
+            <button id="search-button" class="rbtn" type="button" onclick="onSearch()">Search</button>
+            <button id="clear-button" onclick="onClear()">Clear</button>
+        </div>
+
+        <hr>
+
+        <!-- Div that handles the error message and displaying it-->
+        <div id="error-message"></div>
+
+        <!-- Div that handles the results section and to displaying it-->
+        <div id="results-section">
+            <!--<p>this is the result section: {{testvar}}</p>
+            -->
+
+            <div class="tab-buttons" style="">
+                <button onclick="openTab('tab1')">Company Outlook</button>
+                <button onclick="openTab('tab2')">Stock Summary</button>
+              </div>
+              
+              <!-- Tab content -->
+              <div class="tab-content" id="tab1">
+                <div id="company-outlook" class="tab-pane">
+                    <div id="company-title"></div>
+                    <div id="daily-data"></div>
+                </div>
+                <!--
+                <h2>Stock Outlook</h2>
+                <p>Company Name: {{ name }}</p>
+                <p>Ticker: {{ ticker }}</p>
+                <p>Exchange Code: {{ exchangeCode }}</p>
+                <p>Start Date: {{ startDate }}</p>
+                <p>Description: {{ description }}</p> 
+                -->
+   
+              </div>
+              
+              <div class="tab-content" id="tab2">
+                <div id="stock-data"></div>
+                <div id="iex-data"></div>
+                <!--
+                <h2>Stock Summary</h2>
+                <p>Ticker: {{ ticker }}</p>
+                <p>Trading Day: {{ timestamp }}</p>
+                <p>Previous Closing Price: {{ prevClose }}</p>
+                <p>Opening Price: {{ open }}</p>
+                <p>High Price: {{ high }}</p>
+                <p>Low Price: {{ low }}</p>
+                <p>Last Price: {{ last }}</p>
+                <p>Change: {{ temp }}</p>     
+                <p>Change Percent: {{ temp }}</p>
+                <p>Number of Shares Traded: {{ volume }} </p>
+                -->
+              </div>
+   
+        </div>
+
+        
+    </body>
+</html>

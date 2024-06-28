@@ -1,0 +1,53 @@
+/* Style the tabs */
+.tab {
+    display: none;
+  }
+
+/* Style the tab content container */
+  .tab-content {
+    padding: 20px;
+    border: 1px solid #ccc;
+  }
+
+img{
+    width: 12px;
+ }
+
+ button {
+    background-color: white;
+    border: none;
+    color: black;
+    padding: 10px 24px;
+    text-decoration: none; 
+    display: inline-block;
+    cursor: pointer;
+    border-radius: 5px;
+ }
+
+ body {
+    background-color: #6060a9;
+ }
+
+ div#user-input {
+    background-color: e8e8e8;
+    text-align: center;
+    padding: 80px;
+    border-radius: 5px;
+ }
+
+ div.tab-content {
+    background-color: fbfbfb;
+ }
+
+ div#error-message {
+    text-align: center;
+    font-size: large;
+ }
+
+ .grey {
+    background-color: e8e6e6;
+ }
+
+ .rbtn {
+    margin-right: 50px;
+ }
